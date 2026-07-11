@@ -234,9 +234,10 @@
   function nextMatchCard(matches) {
     const live = matches.find((match) => effectiveStatus(match) === "live");
     if (live) {
+      const source = live.source ? ` · ${escapeHtml(live.source)} 참고` : "";
       return {
         title: matchTitle(live),
-        detail: `진행 중<br>실시간 스코어`
+        detail: `진행 중${source}<br>실시간 스코어`
       };
     }
     const upcoming = matches
