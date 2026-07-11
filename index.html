@@ -43,18 +43,19 @@
     tbody th:first-child,thead th:first-child { position:sticky; left:0; z-index:1; background:#fffaf1; text-align:left; }
     .hit { background:var(--green-soft); color:#124c3d; font-weight:800; }
     .miss { background:var(--red-soft); }
+    .bad-pick { display:inline-block; margin-top:3px; padding:2px 5px; border-radius:999px; background:#c96f5b; color:#fff; font-size:.68rem; font-style:normal; font-weight:800; line-height:1; }
     .wait { background:#eee8dd; color:var(--muted); }
     .minority { font-weight:900; box-shadow:inset 0 -3px 0 rgba(196,146,47,.45); }
     .footer th,.footer td { background:rgba(196,146,47,.1); font-weight:800; }
     .winner { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; }
     .winner span { color:var(--muted); }
     .winner strong { font-size:1.35rem; }
-    .champions { grid-template-columns:repeat(7,minmax(0,1fr)); }
-    .champion { min-height:120px; padding:14px; border:1px solid var(--line); border-radius:8px; background:#fff4df; }
+    .champions { grid-template-columns:repeat(7,minmax(0,1fr)); gap:8px; }
+    .champion { min-height:92px; padding:10px; border:1px solid var(--line); border-radius:8px; background:#fff4df; }
     .champion.eliminated { background:#eee8dd; color:var(--muted); }
     .champion.eliminated strong { text-decoration:line-through; }
-    .champion strong { display:block; margin-top:10px; font-size:1.08rem; }
-    .champion em { display:inline-block; margin-top:12px; padding:4px 8px; border-radius:999px; background:var(--green-soft); color:#124c3d; font-size:.82rem; font-style:normal; }
+    .champion strong { display:block; margin-top:7px; font-size:1rem; line-height:1.12; }
+    .champion em { display:inline-block; margin-top:8px; padding:3px 7px; border-radius:999px; background:var(--green-soft); color:#124c3d; font-size:.76rem; font-style:normal; font-weight:800; }
     .champion.eliminated em { background:var(--red-soft); color:#744033; }
     @media (max-width:820px){ .split{grid-template-columns:1fr}.champions{grid-template-columns:repeat(2,minmax(0,1fr))} }
     @media (max-width:620px){
@@ -79,7 +80,12 @@
       .panel,.winner{padding:12px}
       .match{grid-template-columns:56px 1fr; font-size:.86rem}
       .match em{grid-column:2;justify-self:start}
-      .champions{grid-template-columns:1fr}
+      .bad-pick{display:block; width:max-content; max-width:100%; margin:3px auto 0; font-size:.54rem; padding:2px 4px}
+      .champions{grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px}
+      .champion{min-height:74px; padding:8px}
+      .champion span{font-size:.72rem}
+      .champion strong{margin-top:4px; font-size:.85rem}
+      .champion em{margin-top:5px; font-size:.66rem; padding:2px 6px}
     }
   </style>
 </head>
@@ -171,6 +177,22 @@
     return new Set(Object.keys(counts).filter((pick) => counts[pick] === smallest));
   }
 
+  function markBadPicks(table) {
+    if (!table) return;
+    table.querySelectorAll("tbody tr:not(.footer)").forEach((row) => {
+      const cells = [...row.querySelectorAll("td")];
+      const result = cells[0]?.textContent.trim();
+      if (!result || result === "진행/대기") return;
+      cells.slice(1).forEach((cell) => {
+        const pick = cell.childNodes[0]?.textContent.trim() || cell.textContent.trim();
+        if (pick !== result) {
+          cell.classList.add("miss");
+          if (!cell.querySelector(".bad-pick")) cell.insertAdjacentHTML("beforeend", '<em class="bad-pick">축알못</em>');
+        }
+      });
+    });
+  }
+
   function aliveTeams(matches) {
     const teams = new Set();
     matches.forEach((match) => {
@@ -236,14 +258,16 @@
         <tr class="footer"><th>현재 적중</th><td>${finalMatches.length}/${matches.length} 확정</td>${scores.map((score) => `<td>${score.hits}</td>`).join("")}</tr>
         <tr class="footer"><th>총 골수 예측</th><td>현재 ${totalGoals}골</td>${goalPredictions.map((goals) => `<td>${goals}</td>`).join("")}</tr>
       </tbody>`;
+    markBadPicks(document.getElementById("quarterTable"));
+    markBadPicks(document.querySelector("#round16 table"));
 
     const alive = aliveTeams(matches);
     const eliminatedCount = championPredictions.filter((team) => !alive.has(team)).length;
-    document.getElementById("championCaption").textContent = `탈락 반영 ${eliminatedCount}/${championPredictions.length}`;
+    document.getElementById("championCaption").textContent = `축알못 ${eliminatedCount}/${championPredictions.length}`;
     document.getElementById("champions").innerHTML = people.map((name, index) => {
       const team = championPredictions[index];
       const isAlive = alive.has(team);
-      return `<article class="champion ${isAlive ? "" : "eliminated"}"><span>${escapeHtml(name)}</span><strong>${escapeHtml(team)}</strong><em>${isAlive ? "생존" : "탈락"}</em></article>`;
+      return `<article class="champion ${isAlive ? "" : "eliminated"}"><span>${escapeHtml(name)}</span><strong>${escapeHtml(team)}</strong><em>${isAlive ? "생존" : "축알못"}</em></article>`;
     }).join("");
   }
 
