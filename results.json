@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-12T07:05:00+09:00",
+  "updatedAt": "2026-07-12T21:00:00+09:00",
   "matches": [
     {
       "id": "qf1",
@@ -29,11 +29,11 @@
       "home": "?몃Ⅴ?⑥씠",
       "away": "?됯??쒕뱶",
       "homeScore": 1,
-      "awayScore": 1,
-      "winner": null,
-      "status": "live",
+      "awayScore": 2,
+      "winner": "?????뺣굡",
+      "status": "final",
       "kickoff": "2026-07-12T06:00:00+09:00",
-      "source": "Naver"
+      "source": "The Guardian"
     },
     {
       "id": "qf4",
