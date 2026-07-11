@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-12T06:40:52+09:00",
+  "updatedAt": "2026-07-12T07:02:00+09:00",
   "matches": [
     {
       "id": "qf1",
@@ -28,11 +28,12 @@
       "label": "3경기",
       "home": "노르웨이",
       "away": "잉글랜드",
-      "homeScore": 0,
+      "homeScore": 1,
       "awayScore": 0,
       "winner": null,
       "status": "live",
-      "kickoff": "2026-07-12T06:00:00+09:00"
+      "kickoff": "2026-07-12T06:00:00+09:00",
+      "source": "Naver"
     },
     {
       "id": "qf4",
