@@ -1,61 +1,136 @@
-2026 월드컵 예측 내기
-
-8강 업데이트 현황
-프랑스와 스페인이 4강에 먼저 도착했습니다. 남은 두 경기 결과와 총 골수까지 확정되면 8강 승부가 갈립니다.
-
-현재 선두
-고동 · 안재 · 배종 · 조수 · 두두 · 턱턱
-각 2개 적중
-업데이트 기준
-2026.07.11 KST
-8강 2/4 경기 확정
-
-가장 최근 결과
-스페인 2 - 1 벨기에
-스페인 4강 진출
-
-8강 누적 골
-현재 5골
-총 골수 승부는 남은 2경기 후 확정
-
-8강전
-16강전
-우승팀
-8강 적중 수
-확정 2경기 기준
-고동
-2
-안재
-2
-배종
-2
-돼지
-1
-조수
-2
-두두
-2
-턱턱
-2
-경기 진행
-한국 시간
-1경기
-프랑스 2 - 0 모로코
-확정
-2경기
-스페인 2 - 1 벨기에
-확정
-3경기
-노르웨이 vs 잉글랜드
-7/12 06:00
-4경기
-아르헨티나 vs 스위스
-7/12 11:00
-8강 친구별 선택과 결과
-경기	결과	고동	안재	배종	돼지	조수	두두	턱턱
-1경기	프랑스	프랑스	프랑스	프랑스	프랑스	프랑스	프랑스	프랑스
-2경기	스페인	스페인	스페인	스페인	벨기에	스페인	스페인	스페인
-3경기	진행/대기	잉글랜드	노르웨이	잉글랜드	잉글랜드	잉글랜드	잉글랜드	잉글랜드
-4경기	진행/대기	스위스	아르헨티나	아르헨티나	아르헨티나	아르헨티나	아르헨티나	아르헨티나
-현재 적중	2/4 확정	2	2	2	1	2	2	2
-총 골수 예측	현재 5골	7	8	11	10	8	9	6
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>월드컵 예측 내기</title>
+  <style>
+    :root { --bg:#f6f2ea; --fg:#181b1f; --muted:#687077; --line:#d8d0c3; --panel:#fffaf1; --dark:#102f35; --light:#f8f1e7; --green:#1d7f64; --green-soft:#dcefe6; --red-soft:#f2d9d3; --gold:#c4922f; --sky:#dcecf3; }
+    * { box-sizing: border-box; }
+    body { margin:0; color:var(--fg); font-family:Arial, Helvetica, sans-serif; background:radial-gradient(circle at top left, rgba(196,146,47,.2), transparent 28rem), linear-gradient(135deg,#f6f2ea 0%,#eef6f3 52%,#f5eadc 100%); }
+    main { max-width:1120px; margin:0 auto; padding:24px 16px 40px; display:grid; gap:18px; }
+    .hero { display:grid; grid-template-columns:minmax(0,1fr) minmax(260px,360px); gap:18px; align-items:stretch; padding:28px; border-radius:8px; background:var(--dark); color:var(--light); box-shadow:0 18px 50px rgba(24,27,31,.16); }
+    .eyebrow { margin:0 0 10px; color:rgba(248,241,231,.72); font-weight:700; }
+    h1,h2 { margin:0; letter-spacing:0; }
+    h1 { max-width:620px; font-size:clamp(2.2rem,6vw,4.8rem); font-weight:800; line-height:.95; }
+    h2 { font-size:1.15rem; }
+    .copy { max-width:650px; margin:18px 0 0; color:rgba(248,241,231,.82); }
+    .hero-score { display:flex; min-height:190px; flex-direction:column; justify-content:space-between; gap:16px; padding:18px; border:1px solid rgba(248,241,231,.18); border-radius:8px; background:rgba(248,241,231,.08); }
+    .hero-score span,.hero-score em { color:rgba(248,241,231,.72); font-style:normal; }
+    .hero-score strong { font-size:1.85rem; line-height:1.08; }
+    .metrics,.split,.champions { display:grid; gap:12px; }
+    .metrics { grid-template-columns:repeat(3,minmax(0,1fr)); }
+    .split { grid-template-columns:minmax(0,1.1fr) minmax(280px,.9fr); }
+    .card,.panel,.table-panel,.winner { border:1px solid var(--line); border-radius:8px; background:rgba(255,250,241,.82); box-shadow:0 12px 30px rgba(24,27,31,.08); }
+    .card,.panel,.winner { padding:18px; }
+    .card span,.section-title span,.match span,.champion span { color:var(--muted); font-size:.9rem; }
+    .card strong { display:block; margin-top:7px; font-size:1.18rem; }
+    .card p { margin:7px 0 0; color:var(--muted); font-size:.9rem; }
+    .tabs { display:flex; flex-wrap:wrap; gap:8px; }
+    .tabs button { min-height:42px; padding:0 16px; border:1px solid var(--line); border-radius:8px; background:rgba(255,250,241,.72); color:var(--fg); cursor:pointer; font:inherit; }
+    .tabs button.active { border-color:var(--dark); background:var(--dark); color:var(--light); }
+    .view { display:none; gap:14px; }
+    .view.active { display:grid; }
+    .section-title { display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:16px; }
+    .bars { display:grid; gap:11px; }
+    .bar { display:grid; grid-template-columns:54px 1fr 30px; gap:10px; align-items:center; }
+    .track { height:12px; overflow:hidden; border-radius:999px; background:#e4ddd2; }
+    .fill { height:100%; border-radius:inherit; background:linear-gradient(90deg,var(--green),var(--gold)); }
+    .matches { display:grid; }
+    .match { display:grid; grid-template-columns:72px minmax(0,1fr) auto; gap:10px; align-items:center; padding:11px 0; border-bottom:1px solid var(--line); }
+    .match:last-child { border-bottom:0; }
+    .match em { padding:4px 8px; border-radius:999px; background:var(--sky); color:#21434d; font-size:.82rem; font-style:normal; white-space:nowrap; }
+    .table-panel { overflow:hidden; }
+    .scroll { overflow-x:auto; }
+    table { width:100%; min-width:760px; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+    caption { padding:16px 18px; text-align:left; font-weight:800; }
+    th,td { padding:12px 10px; border-top:1px solid var(--line); text-align:center; white-space:nowrap; }
+    thead th { background:rgba(16,47,53,.08); }
+    tbody th:first-child,thead th:first-child { position:sticky; left:0; z-index:1; background:#fffaf1; text-align:left; }
+    .hit { background:var(--green-soft); color:#124c3d; font-weight:800; }
+    .miss { background:var(--red-soft); }
+    .wait { background:#eee8dd; color:var(--muted); }
+    .footer th,.footer td { background:rgba(196,146,47,.1); font-weight:800; }
+    .winner { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; }
+    .winner span { color:var(--muted); }
+    .winner strong { font-size:1.35rem; }
+    .champions { grid-template-columns:repeat(7,minmax(0,1fr)); }
+    .champion { min-height:110px; padding:14px; border:1px solid var(--line); border-radius:8px; background:#fff4df; }
+    .champion strong { display:block; margin-top:10px; font-size:1.08rem; }
+    @media (max-width:820px){ .hero,.metrics,.split{grid-template-columns:1fr}.hero-score{min-height:auto}.champions{grid-template-columns:repeat(2,minmax(0,1fr))} }
+    @media (max-width:520px){ main{padding:16px 12px 28px}.hero{padding:20px}h1{font-size:2.45rem}.card,.panel,.winner{padding:14px}.match{grid-template-columns:64px 1fr}.match em{grid-column:2;justify-self:start}.champions{grid-template-columns:1fr} }
+  </style>
+</head>
+<body>
+<main>
+  <section class="hero">
+    <div>
+      <p class="eyebrow">2026 월드컵 예측 내기</p>
+      <h1>8강 업데이트 현황</h1>
+      <p class="copy">프랑스와 스페인이 4강에 먼저 도착했습니다. 남은 두 경기 결과와 총 골수까지 확정되면 8강 승부가 갈립니다.</p>
+    </div>
+    <div class="hero-score"><span>현재 선두</span><strong>고동 · 안재 · 배종 · 조수 · 두두 · 턱턱</strong><em>각 2개 적중</em></div>
+  </section>
+  <section class="metrics">
+    <article class="card"><span>업데이트 기준</span><strong>2026.07.11 KST</strong><p>8강 2/4 경기 확정</p></article>
+    <article class="card"><span>가장 최근 결과</span><strong>스페인 2 - 1 벨기에</strong><p>스페인 4강 진출</p></article>
+    <article class="card"><span>8강 누적 골</span><strong>현재 5골</strong><p>총 골수 승부는 남은 2경기 후 확정</p></article>
+  </section>
+  <nav class="tabs" aria-label="대시보드 보기">
+    <button class="active" data-view="quarter" type="button">8강전</button>
+    <button data-view="round16" type="button">16강전</button>
+    <button data-view="champion" type="button">우승팀</button>
+  </nav>
+  <section class="view active" id="quarter">
+    <section class="split">
+      <article class="panel"><div class="section-title"><h2>8강 적중 수</h2><span>확정 2경기 기준</span></div><div class="bars">
+        <div class="bar"><span>고동</span><div class="track"><div class="fill" style="width:100%"></div></div><strong>2</strong></div>
+        <div class="bar"><span>안재</span><div class="track"><div class="fill" style="width:100%"></div></div><strong>2</strong></div>
+        <div class="bar"><span>배종</span><div class="track"><div class="fill" style="width:100%"></div></div><strong>2</strong></div>
+        <div class="bar"><span>돼지</span><div class="track"><div class="fill" style="width:50%"></div></div><strong>1</strong></div>
+        <div class="bar"><span>조수</span><div class="track"><div class="fill" style="width:100%"></div></div><strong>2</strong></div>
+        <div class="bar"><span>두두</span><div class="track"><div class="fill" style="width:100%"></div></div><strong>2</strong></div>
+        <div class="bar"><span>턱턱</span><div class="track"><div class="fill" style="width:100%"></div></div><strong>2</strong></div>
+      </div></article>
+      <article class="panel"><div class="section-title"><h2>경기 진행</h2><span>한국 시간</span></div><div class="matches">
+        <div class="match"><span>1경기</span><strong>프랑스 2 - 0 모로코</strong><em>확정</em></div>
+        <div class="match"><span>2경기</span><strong>스페인 2 - 1 벨기에</strong><em>확정</em></div>
+        <div class="match"><span>3경기</span><strong>노르웨이 vs 잉글랜드</strong><em>7/12 06:00</em></div>
+        <div class="match"><span>4경기</span><strong>아르헨티나 vs 스위스</strong><em>7/12 11:00</em></div>
+      </div></article>
+    </section>
+    <section class="table-panel"><div class="scroll"><table><caption>8강 친구별 선택과 결과</caption><thead><tr><th>경기</th><th>결과</th><th>고동</th><th>안재</th><th>배종</th><th>돼지</th><th>조수</th><th>두두</th><th>턱턱</th></tr></thead><tbody>
+      <tr><th>1경기</th><td class="hit">프랑스</td><td class="hit">프랑스</td><td class="hit">프랑스</td><td class="hit">프랑스</td><td class="hit">프랑스</td><td class="hit">프랑스</td><td class="hit">프랑스</td><td class="hit">프랑스</td></tr>
+      <tr><th>2경기</th><td class="hit">스페인</td><td class="hit">스페인</td><td class="hit">스페인</td><td class="hit">스페인</td><td class="miss">벨기에</td><td class="hit">스페인</td><td class="hit">스페인</td><td class="hit">스페인</td></tr>
+      <tr><th>3경기</th><td class="wait">진행/대기</td><td>잉글랜드</td><td>노르웨이</td><td>잉글랜드</td><td>잉글랜드</td><td>잉글랜드</td><td>잉글랜드</td><td>잉글랜드</td></tr>
+      <tr><th>4경기</th><td class="wait">진행/대기</td><td>스위스</td><td>아르헨티나</td><td>아르헨티나</td><td>아르헨티나</td><td>아르헨티나</td><td>아르헨티나</td><td>아르헨티나</td></tr>
+      <tr class="footer"><th>현재 적중</th><td>2/4 확정</td><td>2</td><td>2</td><td>2</td><td>1</td><td>2</td><td>2</td><td>2</td></tr>
+      <tr class="footer"><th>총 골수 예측</th><td>현재 5골</td><td>7</td><td>8</td><td>11</td><td>10</td><td>8</td><td>9</td><td>6</td></tr>
+    </tbody></table></div></section>
+  </section>
+  <section class="view" id="round16">
+    <section class="winner"><span>16강전 승자</span><strong>안재 · 4개 적중</strong></section>
+    <section class="table-panel"><div class="scroll"><table><caption>16강 친구별 선택과 결과</caption><thead><tr><th>경기</th><th>결과</th><th>고동</th><th>안재</th><th>배종</th><th>돼지</th><th>조수</th><th>두두</th><th>턱턱</th></tr></thead><tbody>
+      <tr><th>1경기</th><td>잉글랜드</td><td>멕시코</td><td class="hit">잉글랜드</td><td>멕시코</td><td class="hit">잉글랜드</td><td class="hit">잉글랜드</td><td class="hit">잉글랜드</td><td>멕시코</td></tr>
+      <tr><th>2경기</th><td>스페인</td><td class="hit">스페인</td><td class="hit">스페인</td><td>포르투갈</td><td>포르투갈</td><td class="hit">스페인</td><td class="hit">스페인</td><td class="hit">스페인</td></tr>
+      <tr><th>3경기</th><td>벨기에</td><td class="hit">벨기에</td><td class="hit">벨기에</td><td class="hit">벨기에</td><td>미국</td><td class="hit">벨기에</td><td>미국</td><td>미국</td></tr>
+      <tr><th>4경기</th><td>스위스</td><td>콜롬비아</td><td class="hit">스위스</td><td>콜롬비아</td><td>콜롬비아</td><td>콜롬비아</td><td>콜롬비아</td><td>콜롬비아</td></tr>
+      <tr class="footer"><th>적중 수</th><td>확정</td><td>2</td><td>4</td><td>1</td><td>1</td><td>3</td><td>2</td><td>1</td></tr>
+    </tbody></table></div></section>
+  </section>
+  <section class="view" id="champion">
+    <section class="panel"><div class="section-title"><h2>우승팀 예측</h2><span>결과 대기</span></div><div class="champions">
+      <article class="champion"><span>고동</span><strong>아르헨티나</strong></article><article class="champion"><span>안재</span><strong>스페인</strong></article><article class="champion"><span>배종</span><strong>아르헨티나</strong></article><article class="champion"><span>돼지</span><strong>브라질</strong></article><article class="champion"><span>조수</span><strong>프랑스</strong></article><article class="champion"><span>두두</span><strong>프랑스</strong></article><article class="champion"><span>턱턱</span><strong>프랑스</strong></article>
+    </div></section>
+  </section>
+</main>
+<script>
+  document.querySelectorAll("[data-view]").forEach((button) => {
+    button.addEventListener("click", () => {
+      document.querySelectorAll("[data-view]").forEach((item) => item.classList.toggle("active", item === button));
+      document.querySelectorAll(".view").forEach((view) => view.classList.toggle("active", view.id === button.dataset.view));
+    });
+  });
+</script>
+</body>
+</html>
