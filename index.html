@@ -214,6 +214,39 @@
     return `${mins}분 남음`;
   }
 
+  function compactKickoff(value, includeDate = true) {
+    if (!value) return "-";
+    const options = includeDate
+      ? { timeZone:"Asia/Seoul", month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit", hour12:false }
+      : { timeZone:"Asia/Seoul", hour:"2-digit", minute:"2-digit", hour12:false };
+    return new Intl.DateTimeFormat("ko-KR", options).format(new Date(value)).replace(/\. /g, ".").replace(".", ". ").trim();
+  }
+
+  function nextMatchCard(matches) {
+    const live = matches.find((match) => match.status === "live");
+    if (live) {
+      return {
+        title: matchTitle(live),
+        detail: `진행 중<br>실시간 스코어`
+      };
+    }
+    const upcoming = matches
+      .filter((match) => match.status !== "final" && match.kickoff)
+      .sort((a, b) => new Date(a.kickoff) - new Date(b.kickoff));
+    if (!upcoming.length) {
+      return { title: "예정 경기 없음", detail: "8강 일정 종료" };
+    }
+    const next = upcoming[0];
+    const second = upcoming[1];
+    const kickoffLine = second
+      ? `${compactKickoff(next.kickoff)} · 다음 ${compactKickoff(second.kickoff, false)}`
+      : compactKickoff(next.kickoff);
+    return {
+      title: matchTitle(next),
+      detail: `${kickoffLine}<br>${timeUntil(next.kickoff)}`
+    };
+  }
+
   function badPickScores(finalMatches, alive) {
     const counts = people.map((name) => ({ name, count: 0 }));
     round16Predictions.forEach((picks, matchIndex) => {
@@ -280,9 +313,7 @@
       name,
       hits: finalMatches.filter((match) => sameTeam(quarterPredictions[match.id]?.[personIndex], match.winner)).length
     }));
-    const next = matches
-      .filter((match) => match.status !== "final" && match.kickoff)
-      .sort((a, b) => new Date(a.kickoff) - new Date(b.kickoff))[0];
+    const nextCard = nextMatchCard(matches);
     const alive = aliveTeams(matches);
     const badScores = badPickScores(finalMatches, alive);
     const maxBad = Math.max(0, ...badScores.map((score) => score.count));
@@ -290,8 +321,8 @@
 
     document.getElementById("updatedAt").textContent = formatKst(data.updatedAt || new Date().toISOString());
     document.getElementById("confirmedCount").textContent = `8강 ${finalMatches.length}/${matches.length} 경기 확정`;
-    document.getElementById("nextMatch").textContent = next ? matchTitle(next) : "예정 경기 없음";
-    document.getElementById("nextCountdown").innerHTML = next ? `${escapeHtml(statusText(next))}<br>${escapeHtml(timeUntil(next.kickoff))}` : "8강 일정 종료";
+    document.getElementById("nextMatch").textContent = nextCard.title;
+    document.getElementById("nextCountdown").innerHTML = nextCard.detail;
     document.getElementById("badPickLeader").textContent = badLeaders.length ? `👑 ${badLeaders.join(" · ")} 👑` : "-";
     document.getElementById("badPickCount").textContent = `오답왕 등극 · ${maxBad}개 수집 🤦`;
     document.getElementById("summary").textContent = finalMatches.length === matches.length
