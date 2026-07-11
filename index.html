@@ -100,8 +100,8 @@
   </section>
   <section class="metrics">
     <article class="card"><span>업데이트 기준</span><strong id="updatedAt">-</strong><p id="confirmedCount">결과 확인 중</p></article>
-    <article class="card"><span>가장 최근 결과</span><strong id="latestResult">-</strong><p id="latestWinner">결과 대기</p></article>
-    <article class="card"><span>8강 누적 골</span><strong id="totalGoals">-</strong><p>총 골수 승부는 8강 종료 후 확정</p></article>
+    <article class="card"><span>가장 가까운 예정 경기</span><strong id="nextMatch">-</strong><p id="nextCountdown">일정 확인 중</p></article>
+    <article class="card"><span>축알못 수집가</span><strong id="badPickLeader">-</strong><p id="badPickCount">집계 중</p></article>
   </section>
   <nav class="tabs" aria-label="대시보드 보기">
     <button class="active" data-view="quarter" type="button">8강전</button>
@@ -138,6 +138,13 @@
   };
   const goalPredictions = [7, 8, 11, 10, 8, 9, 6];
   const championPredictions = ["아르헨티나", "스페인", "아르헨티나", "브라질", "프랑스", "프랑스", "프랑스"];
+  const round16Results = ["잉글랜드", "스페인", "벨기에", "스위스"];
+  const round16Predictions = [
+    ["멕시코", "잉글랜드", "멕시코", "잉글랜드", "잉글랜드", "잉글랜드", "멕시코"],
+    ["스페인", "스페인", "포르투갈", "포르투갈", "스페인", "스페인", "스페인"],
+    ["벨기에", "벨기에", "벨기에", "미국", "벨기에", "미국", "미국"],
+    ["콜롬비아", "스위스", "콜롬비아", "콜롬비아", "콜롬비아", "콜롬비아", "콜롬비아"]
+  ];
   const fallbackResults = {
     updatedAt: "2026-07-11T10:10:00+09:00",
     matches: [
@@ -158,8 +165,8 @@
   }
 
   function matchTitle(match) {
-    if (Number.isFinite(match.homeScore) && Number.isFinite(match.awayScore)) return `${match.home} ${match.homeScore} - ${match.awayScore} ${match.away}`;
-    return `${match.home} vs ${match.away}`;
+    if (Number.isFinite(match.homeScore) && Number.isFinite(match.awayScore)) return `${displayTeam(match.home)} ${match.homeScore} - ${match.awayScore} ${displayTeam(match.away)}`;
+    return `${displayTeam(match.home)} vs ${displayTeam(match.away)}`;
   }
 
   function statusText(match) {
@@ -175,6 +182,47 @@
     }, {});
     const smallest = Math.min(...Object.values(counts));
     return new Set(Object.keys(counts).filter((pick) => counts[pick] === smallest));
+  }
+
+  function displayTeam(team) {
+    return team === "아르헨티나" ? "아르헨" : team;
+  }
+
+  function normalizeTeam(team) {
+    return team === "아르헨" ? "아르헨티나" : team;
+  }
+
+  function sameTeam(a, b) {
+    return normalizeTeam(a) === normalizeTeam(b);
+  }
+
+  function timeUntil(value) {
+    const ms = new Date(value).getTime() - Date.now();
+    if (!Number.isFinite(ms)) return "시간 확인 중";
+    if (ms <= 0) return "곧 시작";
+    const minutes = Math.ceil(ms / 60000);
+    const days = Math.floor(minutes / 1440);
+    const hours = Math.floor((minutes % 1440) / 60);
+    const mins = minutes % 60;
+    if (days) return `${days}일 ${hours}시간 남음`;
+    if (hours) return `${hours}시간 ${mins}분 남음`;
+    return `${mins}분 남음`;
+  }
+
+  function badPickScores(finalMatches) {
+    const counts = people.map((name) => ({ name, count: 0 }));
+    round16Predictions.forEach((picks, matchIndex) => {
+      picks.forEach((pick, personIndex) => {
+        if (!sameTeam(pick, round16Results[matchIndex])) counts[personIndex].count += 1;
+      });
+    });
+    finalMatches.forEach((match) => {
+      const picks = quarterPredictions[match.id] || [];
+      picks.forEach((pick, personIndex) => {
+        if (!sameTeam(pick, match.winner)) counts[personIndex].count += 1;
+      });
+    });
+    return counts;
   }
 
   function markBadPicks(table) {
@@ -197,11 +245,11 @@
     const teams = new Set();
     matches.forEach((match) => {
       if (match.status === "final" && match.winner) {
-        teams.add(match.winner);
+        teams.add(normalizeTeam(match.winner));
         return;
       }
-      if (match.home) teams.add(match.home);
-      if (match.away) teams.add(match.away);
+      if (match.home) teams.add(normalizeTeam(match.home));
+      if (match.away) teams.add(normalizeTeam(match.away));
     });
     return teams;
   }
@@ -222,15 +270,21 @@
     const totalGoals = finalMatches.reduce((sum, match) => sum + Number(match.homeScore || 0) + Number(match.awayScore || 0), 0);
     const scores = people.map((name, personIndex) => ({
       name,
-      hits: finalMatches.filter((match) => quarterPredictions[match.id]?.[personIndex] === match.winner).length
+      hits: finalMatches.filter((match) => sameTeam(quarterPredictions[match.id]?.[personIndex], match.winner)).length
     }));
-    const latest = finalMatches.at(-1);
+    const next = matches
+      .filter((match) => match.status !== "final" && match.kickoff)
+      .sort((a, b) => new Date(a.kickoff) - new Date(b.kickoff))[0];
+    const badScores = badPickScores(finalMatches);
+    const maxBad = Math.max(0, ...badScores.map((score) => score.count));
+    const badLeaders = badScores.filter((score) => score.count === maxBad).map((score) => score.name);
 
     document.getElementById("updatedAt").textContent = formatKst(data.updatedAt || new Date().toISOString());
     document.getElementById("confirmedCount").textContent = `8강 ${finalMatches.length}/${matches.length} 경기 확정`;
-    document.getElementById("latestResult").textContent = latest ? matchTitle(latest) : "결과 대기";
-    document.getElementById("latestWinner").textContent = latest ? `${latest.winner} 4강 진출` : "첫 경기 결과를 기다리는 중";
-    document.getElementById("totalGoals").textContent = `현재 ${totalGoals}골`;
+    document.getElementById("nextMatch").textContent = next ? matchTitle(next) : "예정 경기 없음";
+    document.getElementById("nextCountdown").textContent = next ? timeUntil(next.kickoff) : "8강 일정 종료";
+    document.getElementById("badPickLeader").textContent = badLeaders.length ? badLeaders.join(" · ") : "-";
+    document.getElementById("badPickCount").textContent = `${maxBad}개 수집`;
     document.getElementById("summary").textContent = finalMatches.length === matches.length
       ? "8강 모든 경기 결과가 확정되어 적중 수와 총 골수 승부가 자동으로 계산되었습니다."
       : `${finalMatches.map((match) => match.winner).join("와 ")}${finalMatches.length ? "이 4강에 도착했습니다. " : ""}남은 경기 결과가 들어오면 표와 순위가 자동으로 갱신됩니다.`;
@@ -247,12 +301,12 @@
           const picks = quarterPredictions[match.id] || [];
           const minority = ["qf3", "qf4"].includes(match.id) ? minorityPicks(picks) : new Set();
           const resultClass = match.winner ? "hit" : "wait";
-          const resultText = match.winner || "진행/대기";
+          const resultText = match.winner ? displayTeam(match.winner) : "진행/대기";
           return `<tr><th>${escapeHtml(match.label)}</th><td class="${resultClass}">${escapeHtml(resultText)}</td>${people.map((_, index) => {
             const pick = picks[index] || "-";
-            const cellClass = match.winner ? (pick === match.winner ? "hit" : "miss") : "";
+            const cellClass = match.winner ? (sameTeam(pick, match.winner) ? "hit" : "miss") : "";
             const classes = [cellClass, minority.has(pick) ? "minority" : ""].filter(Boolean).join(" ");
-            return `<td class="${classes}">${escapeHtml(pick)}</td>`;
+            return `<td class="${classes}">${escapeHtml(displayTeam(pick))}</td>`;
           }).join("")}</tr>`;
         }).join("")}
         <tr class="footer"><th>현재 적중</th><td>${finalMatches.length}/${matches.length} 확정</td>${scores.map((score) => `<td>${score.hits}</td>`).join("")}</tr>
@@ -266,7 +320,7 @@
     document.getElementById("championCaption").textContent = `축알못 ${eliminatedCount}/${championPredictions.length}`;
     document.getElementById("champions").innerHTML = people.map((name, index) => {
       const team = championPredictions[index];
-      const isAlive = alive.has(team);
+      const isAlive = alive.has(normalizeTeam(team));
       return `<article class="champion ${isAlive ? "" : "eliminated"}"><span>${escapeHtml(name)}</span><strong>${escapeHtml(team)}</strong><em>${isAlive ? "생존" : "축알못"}</em></article>`;
     }).join("");
   }
