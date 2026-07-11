@@ -44,6 +44,7 @@
     .hit { background:var(--green-soft); color:#124c3d; font-weight:800; }
     .miss { background:var(--red-soft); }
     .wait { background:#eee8dd; color:var(--muted); }
+    .minority { font-weight:900; box-shadow:inset 0 -3px 0 rgba(196,146,47,.45); }
     .footer th,.footer td { background:rgba(196,146,47,.1); font-weight:800; }
     .winner { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; }
     .winner span { color:var(--muted); }
@@ -55,8 +56,31 @@
     .champion strong { display:block; margin-top:10px; font-size:1.08rem; }
     .champion em { display:inline-block; margin-top:12px; padding:4px 8px; border-radius:999px; background:var(--green-soft); color:#124c3d; font-size:.82rem; font-style:normal; }
     .champion.eliminated em { background:var(--red-soft); color:#744033; }
-    @media (max-width:820px){ .metrics,.split{grid-template-columns:1fr}.champions{grid-template-columns:repeat(2,minmax(0,1fr))} }
-    @media (max-width:520px){ main{padding:12px 10px 28px; gap:12px}.hero{padding:16px}h1{font-size:1.65rem}.card,.panel,.winner{padding:14px}.match{grid-template-columns:64px 1fr}.match em{grid-column:2;justify-self:start}.champions{grid-template-columns:1fr} }
+    @media (max-width:820px){ .split{grid-template-columns:1fr}.champions{grid-template-columns:repeat(2,minmax(0,1fr))} }
+    @media (max-width:620px){
+      main{padding:12px 8px 28px; gap:10px}
+      .hero{padding:14px 12px}
+      h1{font-size:1.48rem}
+      .copy{margin-top:7px; font-size:.82rem; line-height:1.35}
+      .metrics{grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px}
+      .card{padding:8px 6px; min-width:0}
+      .card span{font-size:.64rem}
+      .card strong{margin-top:4px; font-size:.78rem; line-height:1.15; white-space:normal; word-break:keep-all}
+      .card p{margin-top:4px; font-size:.62rem; line-height:1.2}
+      .tabs{gap:6px}
+      .tabs button{min-height:34px; padding:0 10px; font-size:.86rem}
+      .table-panel{overflow:visible}
+      .scroll{overflow-x:visible}
+      table{min-width:0; table-layout:fixed; font-size:.66rem}
+      caption{padding:10px 6px; font-size:.82rem}
+      th,td{padding:7px 2px; white-space:normal; word-break:keep-all; line-height:1.15}
+      thead th:first-child,tbody th:first-child{width:38px}
+      thead th:nth-child(2),tbody td:nth-child(2){width:46px}
+      .panel,.winner{padding:12px}
+      .match{grid-template-columns:56px 1fr; font-size:.86rem}
+      .match em{grid-column:2;justify-self:start}
+      .champions{grid-template-columns:1fr}
+    }
   </style>
 </head>
 <body>
@@ -138,6 +162,15 @@
     return formatKst(match.kickoff).replace(/^2026\. /, "");
   }
 
+  function minorityPicks(picks) {
+    const counts = picks.reduce((acc, pick) => {
+      acc[pick] = (acc[pick] || 0) + 1;
+      return acc;
+    }, {});
+    const smallest = Math.min(...Object.values(counts));
+    return new Set(Object.keys(counts).filter((pick) => counts[pick] === smallest));
+  }
+
   function aliveTeams(matches) {
     const teams = new Set();
     matches.forEach((match) => {
@@ -190,12 +223,14 @@
       <tbody>
         ${matches.map((match) => {
           const picks = quarterPredictions[match.id] || [];
+          const minority = ["qf3", "qf4"].includes(match.id) ? minorityPicks(picks) : new Set();
           const resultClass = match.winner ? "hit" : "wait";
           const resultText = match.winner || "진행/대기";
           return `<tr><th>${escapeHtml(match.label)}</th><td class="${resultClass}">${escapeHtml(resultText)}</td>${people.map((_, index) => {
             const pick = picks[index] || "-";
             const cellClass = match.winner ? (pick === match.winner ? "hit" : "miss") : "";
-            return `<td class="${cellClass}">${escapeHtml(pick)}</td>`;
+            const classes = [cellClass, minority.has(pick) ? "minority" : ""].filter(Boolean).join(" ");
+            return `<td class="${classes}">${escapeHtml(pick)}</td>`;
           }).join("")}</tr>`;
         }).join("")}
         <tr class="footer"><th>현재 적중</th><td>${finalMatches.length}/${matches.length} 확정</td>${scores.map((score) => `<td>${score.hits}</td>`).join("")}</tr>
