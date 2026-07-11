@@ -1,0 +1,49 @@
+{
+  "updatedAt": "2026-07-11T10:10:00+09:00",
+  "matches": [
+    {
+      "id": "qf1",
+      "label": "1경기",
+      "home": "프랑스",
+      "away": "모로코",
+      "homeScore": 2,
+      "awayScore": 0,
+      "winner": "프랑스",
+      "status": "final",
+      "kickoff": "2026-07-11T03:00:00+09:00"
+    },
+    {
+      "id": "qf2",
+      "label": "2경기",
+      "home": "스페인",
+      "away": "벨기에",
+      "homeScore": 2,
+      "awayScore": 1,
+      "winner": "스페인",
+      "status": "final",
+      "kickoff": "2026-07-11T06:00:00+09:00"
+    },
+    {
+      "id": "qf3",
+      "label": "3경기",
+      "home": "노르웨이",
+      "away": "잉글랜드",
+      "homeScore": null,
+      "awayScore": null,
+      "winner": null,
+      "status": "scheduled",
+      "kickoff": "2026-07-12T06:00:00+09:00"
+    },
+    {
+      "id": "qf4",
+      "label": "4경기",
+      "home": "아르헨티나",
+      "away": "스위스",
+      "homeScore": null,
+      "awayScore": null,
+      "winner": null,
+      "status": "scheduled",
+      "kickoff": "2026-07-12T11:00:00+09:00"
+    }
+  ]
+}
