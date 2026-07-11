@@ -176,8 +176,17 @@
 
   function statusText(match) {
     if (match.status === "final") return "확정";
-    if (match.status === "live") return "진행 중";
+    if (effectiveStatus(match) === "live") return "진행 중";
     return formatKst(match.kickoff).replace(/^2026\. /, "");
+  }
+
+  function effectiveStatus(match) {
+    if (match.status === "final" || match.status === "live") return match.status;
+    if (!match.kickoff || match.winner) return match.status;
+    const kickoff = new Date(match.kickoff).getTime();
+    if (!Number.isFinite(kickoff)) return match.status;
+    const elapsedMinutes = (Date.now() - kickoff) / 60000;
+    return elapsedMinutes >= 0 && elapsedMinutes < 180 ? "live" : match.status;
   }
 
   function minorityPicks(picks) {
@@ -223,7 +232,7 @@
   }
 
   function nextMatchCard(matches) {
-    const live = matches.find((match) => match.status === "live");
+    const live = matches.find((match) => effectiveStatus(match) === "live");
     if (live) {
       return {
         title: matchTitle(live),
@@ -231,7 +240,7 @@
       };
     }
     const upcoming = matches
-      .filter((match) => match.status !== "final" && match.kickoff)
+      .filter((match) => effectiveStatus(match) !== "final" && effectiveStatus(match) !== "live" && match.kickoff)
       .sort((a, b) => new Date(a.kickoff) - new Date(b.kickoff));
     if (!upcoming.length) {
       return { title: "예정 경기 없음", detail: "8강 일정 종료" };
@@ -326,7 +335,7 @@
       : `${finalMatches.map((match) => match.winner).join("와 ")}${finalMatches.length ? "이 4강에 도착했습니다. " : ""}남은 경기 결과가 들어오면 표와 순위가 자동으로 갱신됩니다.`;
 
     document.getElementById("matches").innerHTML = matches.map((match) => (
-      `<div class="match ${match.status === "live" ? "live" : ""}"><span>${escapeHtml(match.label)}</span><strong>${escapeHtml(matchTitle(match))}</strong><em>${escapeHtml(statusText(match))}</em></div>`
+      `<div class="match ${effectiveStatus(match) === "live" ? "live" : ""}"><span>${escapeHtml(match.label)}</span><strong>${escapeHtml(matchTitle(match))}</strong><em>${escapeHtml(statusText(match))}</em></div>`
     )).join("");
 
     document.getElementById("quarterTable").innerHTML = `
