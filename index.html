@@ -6,7 +6,7 @@
   <title>월드컵 예측 내기</title>
   <style>
     :root { --bg:#f6f2ea; --fg:#181b1f; --muted:#687077; --line:#d8d0c3; --panel:#fffaf1; --dark:#102f35; --light:#f8f1e7; --green:#1d7f64; --green-soft:#dcefe6; --red-soft:#f2d9d3; --gold:#c4922f; --sky:#dcecf3; }
-    * { box-sizing: border-box; }
+    * { box-sizing:border-box; }
     body { margin:0; color:var(--fg); font-family:Arial, Helvetica, sans-serif; background:radial-gradient(circle at top left, rgba(196,146,47,.2), transparent 28rem), linear-gradient(135deg,#f6f2ea 0%,#eef6f3 52%,#f5eadc 100%); }
     main { max-width:1120px; margin:0 auto; padding:24px 16px 40px; display:grid; gap:18px; }
     .hero { display:grid; grid-template-columns:minmax(0,1fr) minmax(260px,360px); gap:18px; align-items:stretch; padding:28px; border-radius:8px; background:var(--dark); color:var(--light); box-shadow:0 18px 50px rgba(24,27,31,.16); }
@@ -35,11 +35,12 @@
     .bars { display:grid; gap:11px; }
     .bar { display:grid; grid-template-columns:54px 1fr 30px; gap:10px; align-items:center; }
     .track { height:12px; overflow:hidden; border-radius:999px; background:#e4ddd2; }
-    .fill { height:100%; border-radius:inherit; background:linear-gradient(90deg,var(--green),var(--gold)); }
+    .fill { height:100%; border-radius:inherit; background:linear-gradient(90deg,var(--green),var(--gold)); transition:width .25s ease; }
     .matches { display:grid; }
     .match { display:grid; grid-template-columns:72px minmax(0,1fr) auto; gap:10px; align-items:center; padding:11px 0; border-bottom:1px solid var(--line); }
     .match:last-child { border-bottom:0; }
     .match em { padding:4px 8px; border-radius:999px; background:var(--sky); color:#21434d; font-size:.82rem; font-style:normal; white-space:nowrap; }
+    .match.live em { background:var(--green-soft); color:#124c3d; }
     .table-panel { overflow:hidden; }
     .scroll { overflow-x:auto; }
     table { width:100%; min-width:760px; border-collapse:collapse; font-variant-numeric:tabular-nums; }
@@ -67,14 +68,14 @@
     <div>
       <p class="eyebrow">2026 월드컵 예측 내기</p>
       <h1>8강 업데이트 현황</h1>
-      <p class="copy">프랑스와 스페인이 4강에 먼저 도착했습니다. 남은 두 경기 결과와 총 골수까지 확정되면 8강 승부가 갈립니다.</p>
+      <p class="copy" id="summary">경기 결과를 불러오는 중입니다.</p>
     </div>
-    <div class="hero-score"><span>현재 선두</span><strong>고동 · 안재 · 배종 · 조수 · 두두 · 턱턱</strong><em>각 2개 적중</em></div>
+    <div class="hero-score"><span>현재 선두</span><strong id="leader">-</strong><em id="leaderScore">집계 중</em></div>
   </section>
   <section class="metrics">
-    <article class="card"><span>업데이트 기준</span><strong>2026.07.11 KST</strong><p>8강 2/4 경기 확정</p></article>
-    <article class="card"><span>가장 최근 결과</span><strong>스페인 2 - 1 벨기에</strong><p>스페인 4강 진출</p></article>
-    <article class="card"><span>8강 누적 골</span><strong>현재 5골</strong><p>총 골수 승부는 남은 2경기 후 확정</p></article>
+    <article class="card"><span>업데이트 기준</span><strong id="updatedAt">-</strong><p id="confirmedCount">결과 확인 중</p></article>
+    <article class="card"><span>가장 최근 결과</span><strong id="latestResult">-</strong><p id="latestWinner">결과 대기</p></article>
+    <article class="card"><span>8강 누적 골</span><strong id="totalGoals">-</strong><p>총 골수 승부는 8강 종료 후 확정</p></article>
   </section>
   <nav class="tabs" aria-label="대시보드 보기">
     <button class="active" data-view="quarter" type="button">8강전</button>
@@ -83,30 +84,10 @@
   </nav>
   <section class="view active" id="quarter">
     <section class="split">
-      <article class="panel"><div class="section-title"><h2>8강 적중 수</h2><span>확정 2경기 기준</span></div><div class="bars">
-        <div class="bar"><span>고동</span><div class="track"><div class="fill" style="width:100%"></div></div><strong>2</strong></div>
-        <div class="bar"><span>안재</span><div class="track"><div class="fill" style="width:100%"></div></div><strong>2</strong></div>
-        <div class="bar"><span>배종</span><div class="track"><div class="fill" style="width:100%"></div></div><strong>2</strong></div>
-        <div class="bar"><span>돼지</span><div class="track"><div class="fill" style="width:50%"></div></div><strong>1</strong></div>
-        <div class="bar"><span>조수</span><div class="track"><div class="fill" style="width:100%"></div></div><strong>2</strong></div>
-        <div class="bar"><span>두두</span><div class="track"><div class="fill" style="width:100%"></div></div><strong>2</strong></div>
-        <div class="bar"><span>턱턱</span><div class="track"><div class="fill" style="width:100%"></div></div><strong>2</strong></div>
-      </div></article>
-      <article class="panel"><div class="section-title"><h2>경기 진행</h2><span>한국 시간</span></div><div class="matches">
-        <div class="match"><span>1경기</span><strong>프랑스 2 - 0 모로코</strong><em>확정</em></div>
-        <div class="match"><span>2경기</span><strong>스페인 2 - 1 벨기에</strong><em>확정</em></div>
-        <div class="match"><span>3경기</span><strong>노르웨이 vs 잉글랜드</strong><em>7/12 06:00</em></div>
-        <div class="match"><span>4경기</span><strong>아르헨티나 vs 스위스</strong><em>7/12 11:00</em></div>
-      </div></article>
+      <article class="panel"><div class="section-title"><h2>8강 적중 수</h2><span id="scoreCaption">확정 경기 기준</span></div><div class="bars" id="bars"></div></article>
+      <article class="panel"><div class="section-title"><h2>경기 진행</h2><span>한국 시간</span></div><div class="matches" id="matches"></div></article>
     </section>
-    <section class="table-panel"><div class="scroll"><table><caption>8강 친구별 선택과 결과</caption><thead><tr><th>경기</th><th>결과</th><th>고동</th><th>안재</th><th>배종</th><th>돼지</th><th>조수</th><th>두두</th><th>턱턱</th></tr></thead><tbody>
-      <tr><th>1경기</th><td class="hit">프랑스</td><td class="hit">프랑스</td><td class="hit">프랑스</td><td class="hit">프랑스</td><td class="hit">프랑스</td><td class="hit">프랑스</td><td class="hit">프랑스</td><td class="hit">프랑스</td></tr>
-      <tr><th>2경기</th><td class="hit">스페인</td><td class="hit">스페인</td><td class="hit">스페인</td><td class="hit">스페인</td><td class="miss">벨기에</td><td class="hit">스페인</td><td class="hit">스페인</td><td class="hit">스페인</td></tr>
-      <tr><th>3경기</th><td class="wait">진행/대기</td><td>잉글랜드</td><td>노르웨이</td><td>잉글랜드</td><td>잉글랜드</td><td>잉글랜드</td><td>잉글랜드</td><td>잉글랜드</td></tr>
-      <tr><th>4경기</th><td class="wait">진행/대기</td><td>스위스</td><td>아르헨티나</td><td>아르헨티나</td><td>아르헨티나</td><td>아르헨티나</td><td>아르헨티나</td><td>아르헨티나</td></tr>
-      <tr class="footer"><th>현재 적중</th><td>2/4 확정</td><td>2</td><td>2</td><td>2</td><td>1</td><td>2</td><td>2</td><td>2</td></tr>
-      <tr class="footer"><th>총 골수 예측</th><td>현재 5골</td><td>7</td><td>8</td><td>11</td><td>10</td><td>8</td><td>9</td><td>6</td></tr>
-    </tbody></table></div></section>
+    <section class="table-panel"><div class="scroll"><table id="quarterTable"></table></div></section>
   </section>
   <section class="view" id="round16">
     <section class="winner"><span>16강전 승자</span><strong>안재 · 4개 적중</strong></section>
@@ -119,18 +100,128 @@
     </tbody></table></div></section>
   </section>
   <section class="view" id="champion">
-    <section class="panel"><div class="section-title"><h2>우승팀 예측</h2><span>결과 대기</span></div><div class="champions">
-      <article class="champion"><span>고동</span><strong>아르헨티나</strong></article><article class="champion"><span>안재</span><strong>스페인</strong></article><article class="champion"><span>배종</span><strong>아르헨티나</strong></article><article class="champion"><span>돼지</span><strong>브라질</strong></article><article class="champion"><span>조수</span><strong>프랑스</strong></article><article class="champion"><span>두두</span><strong>프랑스</strong></article><article class="champion"><span>턱턱</span><strong>프랑스</strong></article>
-    </div></section>
+    <section class="panel"><div class="section-title"><h2>우승팀 예측</h2><span>결과 대기</span></div><div class="champions" id="champions"></div></section>
   </section>
 </main>
 <script>
+  const people = ["고동", "안재", "배종", "돼지", "조수", "두두", "턱턱"];
+  const quarterPredictions = {
+    "qf1": ["프랑스","프랑스","프랑스","프랑스","프랑스","프랑스","프랑스"],
+    "qf2": ["스페인","스페인","스페인","벨기에","스페인","스페인","스페인"],
+    "qf3": ["잉글랜드","노르웨이","잉글랜드","잉글랜드","잉글랜드","잉글랜드","잉글랜드"],
+    "qf4": ["스위스","아르헨티나","아르헨티나","아르헨티나","아르헨티나","아르헨티나","아르헨티나"]
+  };
+  const goalPredictions = [7, 8, 11, 10, 8, 9, 6];
+  const championPredictions = ["아르헨티나", "스페인", "아르헨티나", "브라질", "프랑스", "프랑스", "프랑스"];
+  const fallbackResults = {
+    updatedAt: "2026-07-11T10:10:00+09:00",
+    matches: [
+      { id:"qf1", label:"1경기", home:"프랑스", away:"모로코", homeScore:2, awayScore:0, winner:"프랑스", status:"final", kickoff:"2026-07-11T03:00:00+09:00" },
+      { id:"qf2", label:"2경기", home:"스페인", away:"벨기에", homeScore:2, awayScore:1, winner:"스페인", status:"final", kickoff:"2026-07-11T06:00:00+09:00" },
+      { id:"qf3", label:"3경기", home:"노르웨이", away:"잉글랜드", homeScore:null, awayScore:null, winner:null, status:"scheduled", kickoff:"2026-07-12T06:00:00+09:00" },
+      { id:"qf4", label:"4경기", home:"아르헨티나", away:"스위스", homeScore:null, awayScore:null, winner:null, status:"scheduled", kickoff:"2026-07-12T11:00:00+09:00" }
+    ]
+  };
+
+  function formatKst(value) {
+    if (!value) return "-";
+    return new Intl.DateTimeFormat("ko-KR", { timeZone:"Asia/Seoul", year:"numeric", month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit", hour12:false }).format(new Date(value)).replace(/\. /g, ".").replace(".", ". ");
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[char]));
+  }
+
+  function matchTitle(match) {
+    if (Number.isFinite(match.homeScore) && Number.isFinite(match.awayScore)) return `${match.home} ${match.homeScore} - ${match.awayScore} ${match.away}`;
+    return `${match.home} vs ${match.away}`;
+  }
+
+  function statusText(match) {
+    if (match.status === "final") return "확정";
+    if (match.status === "live") return "진행 중";
+    return formatKst(match.kickoff).replace(/^2026\. /, "");
+  }
+
+  async function loadResults() {
+    try {
+      const response = await fetch(`./results.json?ts=${Date.now()}`, { cache:"no-store" });
+      if (!response.ok) throw new Error("results.json not available");
+      return await response.json();
+    } catch (error) {
+      return fallbackResults;
+    }
+  }
+
+  function render(data) {
+    const matches = data.matches || [];
+    const finalMatches = matches.filter((match) => match.status === "final" && match.winner);
+    const totalGoals = finalMatches.reduce((sum, match) => sum + Number(match.homeScore || 0) + Number(match.awayScore || 0), 0);
+    const scores = people.map((name, personIndex) => ({
+      name,
+      hits: finalMatches.filter((match) => quarterPredictions[match.id]?.[personIndex] === match.winner).length
+    }));
+    const maxHits = Math.max(0, ...scores.map((score) => score.hits));
+    const leaders = scores.filter((score) => score.hits === maxHits).map((score) => score.name);
+    const latest = finalMatches.at(-1);
+
+    document.getElementById("leader").textContent = leaders.length ? leaders.join(" · ") : "결과 대기";
+    document.getElementById("leaderScore").textContent = maxHits ? `각 ${maxHits}개 적중` : "아직 확정 경기 없음";
+    document.getElementById("updatedAt").textContent = formatKst(data.updatedAt || new Date().toISOString());
+    document.getElementById("confirmedCount").textContent = `8강 ${finalMatches.length}/${matches.length} 경기 확정`;
+    document.getElementById("latestResult").textContent = latest ? matchTitle(latest) : "결과 대기";
+    document.getElementById("latestWinner").textContent = latest ? `${latest.winner} 4강 진출` : "첫 경기 결과를 기다리는 중";
+    document.getElementById("totalGoals").textContent = `현재 ${totalGoals}골`;
+    document.getElementById("scoreCaption").textContent = `확정 ${finalMatches.length}경기 기준`;
+    document.getElementById("summary").textContent = finalMatches.length === matches.length
+      ? "8강 모든 경기 결과가 확정되어 적중 수와 총 골수 승부가 자동으로 계산되었습니다."
+      : `${finalMatches.map((match) => match.winner).join("와 ")}${finalMatches.length ? "이 4강에 도착했습니다. " : ""}남은 경기 결과가 들어오면 표와 순위가 자동으로 갱신됩니다.`;
+
+    document.getElementById("bars").innerHTML = scores.map((score) => {
+      const width = matches.length ? Math.round((score.hits / matches.length) * 100) : 0;
+      return `<div class="bar"><span>${escapeHtml(score.name)}</span><div class="track"><div class="fill" style="width:${width}%"></div></div><strong>${score.hits}</strong></div>`;
+    }).join("");
+
+    document.getElementById("matches").innerHTML = matches.map((match) => (
+      `<div class="match ${match.status === "live" ? "live" : ""}"><span>${escapeHtml(match.label)}</span><strong>${escapeHtml(matchTitle(match))}</strong><em>${escapeHtml(statusText(match))}</em></div>`
+    )).join("");
+
+    document.getElementById("quarterTable").innerHTML = `
+      <caption>8강 친구별 선택과 결과</caption>
+      <thead><tr><th>경기</th><th>결과</th>${people.map((name) => `<th>${escapeHtml(name)}</th>`).join("")}</tr></thead>
+      <tbody>
+        ${matches.map((match) => {
+          const picks = quarterPredictions[match.id] || [];
+          const resultClass = match.winner ? "hit" : "wait";
+          const resultText = match.winner || "진행/대기";
+          return `<tr><th>${escapeHtml(match.label)}</th><td class="${resultClass}">${escapeHtml(resultText)}</td>${people.map((_, index) => {
+            const pick = picks[index] || "-";
+            const cellClass = match.winner ? (pick === match.winner ? "hit" : "miss") : "";
+            return `<td class="${cellClass}">${escapeHtml(pick)}</td>`;
+          }).join("")}</tr>`;
+        }).join("")}
+        <tr class="footer"><th>현재 적중</th><td>${finalMatches.length}/${matches.length} 확정</td>${scores.map((score) => `<td>${score.hits}</td>`).join("")}</tr>
+        <tr class="footer"><th>총 골수 예측</th><td>현재 ${totalGoals}골</td>${goalPredictions.map((goals) => `<td>${goals}</td>`).join("")}</tr>
+      </tbody>`;
+
+    document.getElementById("champions").innerHTML = people.map((name, index) => (
+      `<article class="champion"><span>${escapeHtml(name)}</span><strong>${escapeHtml(championPredictions[index])}</strong></article>`
+    )).join("");
+  }
+
+  async function refresh() {
+    render(await loadResults());
+  }
+
   document.querySelectorAll("[data-view]").forEach((button) => {
     button.addEventListener("click", () => {
       document.querySelectorAll("[data-view]").forEach((item) => item.classList.toggle("active", item === button));
       document.querySelectorAll(".view").forEach((view) => view.classList.toggle("active", view.id === button.dataset.view));
     });
   });
+
+  refresh();
+  setInterval(refresh, 60000);
 </script>
 </body>
 </html>
