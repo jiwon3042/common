@@ -100,7 +100,7 @@
   </section>
   <section class="metrics">
     <article class="card"><span>업데이트 기준</span><strong id="updatedAt">-</strong><p id="confirmedCount">결과 확인 중</p></article>
-    <article class="card"><span>가장 가까운 예정 경기</span><strong id="nextMatch">-</strong><p id="nextCountdown">일정 확인 중</p></article>
+    <article class="card"><span>예정경기</span><strong id="nextMatch">-</strong><p id="nextCountdown">일정 확인 중</p></article>
     <article class="card"><span>축알못 수집가</span><strong id="badPickLeader">-</strong><p id="badPickCount">집계 중</p></article>
   </section>
   <nav class="tabs" aria-label="대시보드 보기">
@@ -209,7 +209,7 @@
     return `${mins}분 남음`;
   }
 
-  function badPickScores(finalMatches) {
+  function badPickScores(finalMatches, alive) {
     const counts = people.map((name) => ({ name, count: 0 }));
     round16Predictions.forEach((picks, matchIndex) => {
       picks.forEach((pick, personIndex) => {
@@ -221,6 +221,9 @@
       picks.forEach((pick, personIndex) => {
         if (!sameTeam(pick, match.winner)) counts[personIndex].count += 1;
       });
+    });
+    championPredictions.forEach((team, personIndex) => {
+      if (!alive.has(normalizeTeam(team))) counts[personIndex].count += 1;
     });
     return counts;
   }
@@ -275,14 +278,15 @@
     const next = matches
       .filter((match) => match.status !== "final" && match.kickoff)
       .sort((a, b) => new Date(a.kickoff) - new Date(b.kickoff))[0];
-    const badScores = badPickScores(finalMatches);
+    const alive = aliveTeams(matches);
+    const badScores = badPickScores(finalMatches, alive);
     const maxBad = Math.max(0, ...badScores.map((score) => score.count));
     const badLeaders = badScores.filter((score) => score.count === maxBad).map((score) => score.name);
 
     document.getElementById("updatedAt").textContent = formatKst(data.updatedAt || new Date().toISOString());
     document.getElementById("confirmedCount").textContent = `8강 ${finalMatches.length}/${matches.length} 경기 확정`;
     document.getElementById("nextMatch").textContent = next ? matchTitle(next) : "예정 경기 없음";
-    document.getElementById("nextCountdown").textContent = next ? timeUntil(next.kickoff) : "8강 일정 종료";
+    document.getElementById("nextCountdown").textContent = next ? `킥오프 ${statusText(next)} · ${timeUntil(next.kickoff)}` : "8강 일정 종료";
     document.getElementById("badPickLeader").textContent = badLeaders.length ? badLeaders.join(" · ") : "-";
     document.getElementById("badPickCount").textContent = `${maxBad}개 수집`;
     document.getElementById("summary").textContent = finalMatches.length === matches.length
@@ -315,8 +319,7 @@
     markBadPicks(document.getElementById("quarterTable"));
     markBadPicks(document.querySelector("#round16 table"));
 
-    const alive = aliveTeams(matches);
-    const eliminatedCount = championPredictions.filter((team) => !alive.has(team)).length;
+    const eliminatedCount = championPredictions.filter((team) => !alive.has(normalizeTeam(team))).length;
     document.getElementById("championCaption").textContent = `축알못 ${eliminatedCount}/${championPredictions.length}`;
     document.getElementById("champions").innerHTML = people.map((name, index) => {
       const team = championPredictions[index];
