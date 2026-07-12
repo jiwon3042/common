@@ -57,6 +57,7 @@
     .winner { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; }
     .winner span { color:var(--muted); }
     .winner strong { font-size:1.35rem; }
+    .winner-badge { display:inline-block; padding:4px 8px; border-radius:999px; background:var(--green-soft); color:#124c3d; font-size:.82rem; font-weight:800; }
     .status-pill { display:inline-block; padding:4px 8px; border-radius:999px; background:var(--sky); color:#21434d; font-size:.82rem; font-style:normal; font-weight:800; }
     .champions { grid-template-columns:repeat(7,minmax(0,1fr)); gap:8px; }
     .champion { min-height:92px; padding:10px; border:1px solid var(--line); border-radius:8px; background:#fff4df; }
@@ -116,19 +117,19 @@
     <article class="card taunt-card"><span>축알못 수집가</span><strong id="badPickLeader">-</strong><p id="badPickCount">집계 중</p></article>
   </section>
   <nav class="tabs" aria-label="대시보드 보기">
-    <button class="active" data-view="quarter" type="button">8강전</button>
-    <button data-view="semifinal" type="button">4강전</button>
+    <button class="active" data-view="semifinal" type="button">4강전</button>
+    <button data-view="quarter" type="button">8강전</button>
     <button data-view="round16" type="button">16강전</button>
     <button data-view="champion" type="button">우승팀</button>
   </nav>
-  <section class="view active" id="quarter">
+  <section class="view" id="quarter">
     <section class="winner"><span>8강전 승자</span><strong id="quarterWinner">집계 중</strong></section>
     <section class="table-panel"><div class="scroll"><table id="quarterTable"></table></div></section>
     <section class="split">
       <article class="panel"><div class="section-title"><h2>경기 진행</h2><span>한국 시간</span></div><div class="matches" id="matches"></div></article>
     </section>
   </section>
-  <section class="view" id="semifinal">
+  <section class="view active" id="semifinal">
     <section class="winner"><span>4강전</span><strong>스코어 투표중</strong></section>
     <section class="table-panel"><div class="scroll"><table id="semifinalTable"></table></div></section>
   </section>
@@ -396,8 +397,8 @@
     const quarterWin = quarterGoalWinner(finalMatches);
     const quarterWinNames = quarterWin.winners.map((winner) => winner.name).join(" · ");
     const quarterWinPredictions = [...new Set(quarterWin.winners.map((winner) => `${winner.prediction}골`))].join(" · ");
-    document.getElementById("quarterWinner").textContent = finalMatches.length === matches.length
-      ? `${quarterWinNames} · ${quarterWinPredictions} 예측 (실제 ${quarterWin.totalGoals}골)`
+    document.getElementById("quarterWinner").innerHTML = finalMatches.length === matches.length
+      ? `${escapeHtml(quarterWinNames)} <span class="winner-badge">${escapeHtml(quarterWinPredictions)} 예측 · 실제 ${quarterWin.totalGoals}골</span>`
       : "8강 종료 후 확정";
 
     document.getElementById("matches").innerHTML = matches.map((match) => (
@@ -421,7 +422,7 @@
           }).join("")}</tr>`;
         }).join("")}
         <tr class="footer"><th>현재 적중</th><td>${finalMatches.length}/${matches.length} 확정</td>${scores.map((score) => `<td>${score.hits}</td>`).join("")}</tr>
-        <tr class="footer"><th>총 골수 예측</th><td>현재 ${totalGoals}골</td>${goalPredictions.map((goals) => `<td>${goals}</td>`).join("")}</tr>
+        <tr class="footer"><th>총 골수 예측</th><td>현재 ${totalGoals}골</td>${goalPredictions.map((goals, index) => `<td>${goals}${index === 2 ? "" : '<em class="bad-pick">축알못</em>'}</td>`).join("")}</tr>
       </tbody>`;
     document.getElementById("semifinalTable").innerHTML = `
       <caption>4강 스코어 투표 현황</caption>
