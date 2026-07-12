@@ -58,7 +58,7 @@
       "awayScore": null,
       "winner": null,
       "status": "polling",
-      "kickoff": null
+      "kickoff": "2026-07-15T04:00:00+09:00"
     },
     {
       "id": "sf2",
@@ -69,7 +69,7 @@
       "awayScore": null,
       "winner": null,
       "status": "polling",
-      "kickoff": null
+      "kickoff": "2026-07-16T04:00:00+09:00"
     }
   ]
 }
