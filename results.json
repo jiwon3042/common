@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-12T12:46:44+09:00",
+  "updatedAt": "2026-07-12T13:10:33+09:00",
   "matches": [
     {
       "id": "qf1",
@@ -46,6 +46,30 @@
       "status": "final",
       "kickoff": "2026-07-12T10:00:00+09:00",
       "source": "User report"
+    }
+  ],
+  "semifinals": [
+    {
+      "id": "sf1",
+      "label": "4강 1경기",
+      "home": "프랑스",
+      "away": "스페인",
+      "homeScore": null,
+      "awayScore": null,
+      "winner": null,
+      "status": "polling",
+      "kickoff": null
+    },
+    {
+      "id": "sf2",
+      "label": "4강 2경기",
+      "home": "잉글랜드",
+      "away": "아르헨티나",
+      "homeScore": null,
+      "awayScore": null,
+      "winner": null,
+      "status": "polling",
+      "kickoff": null
     }
   ]
 }
