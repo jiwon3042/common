@@ -57,6 +57,7 @@
     .winner { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; }
     .winner span { color:var(--muted); }
     .winner strong { font-size:1.35rem; }
+    .status-pill { display:inline-block; padding:4px 8px; border-radius:999px; background:var(--sky); color:#21434d; font-size:.82rem; font-style:normal; font-weight:800; }
     .champions { grid-template-columns:repeat(7,minmax(0,1fr)); gap:8px; }
     .champion { min-height:92px; padding:10px; border:1px solid var(--line); border-radius:8px; background:#fff4df; }
     .champion.eliminated { background:#eee8dd; color:var(--muted); }
@@ -116,14 +117,20 @@
   </section>
   <nav class="tabs" aria-label="대시보드 보기">
     <button class="active" data-view="quarter" type="button">8강전</button>
+    <button data-view="semifinal" type="button">4강전</button>
     <button data-view="round16" type="button">16강전</button>
     <button data-view="champion" type="button">우승팀</button>
   </nav>
   <section class="view active" id="quarter">
+    <section class="winner"><span>8강전 승자</span><strong id="quarterWinner">집계 중</strong></section>
     <section class="table-panel"><div class="scroll"><table id="quarterTable"></table></div></section>
     <section class="split">
       <article class="panel"><div class="section-title"><h2>경기 진행</h2><span>한국 시간</span></div><div class="matches" id="matches"></div></article>
     </section>
+  </section>
+  <section class="view" id="semifinal">
+    <section class="winner"><span>4강전</span><strong>스코어 투표중</strong></section>
+    <section class="table-panel"><div class="scroll"><table id="semifinalTable"></table></div></section>
   </section>
   <section class="view" id="round16">
     <section class="winner"><span>16강전 승자</span><strong>안재 · 4개 적중</strong></section>
@@ -163,6 +170,10 @@
       { id:"qf2", label:"2경기", home:"스페인", away:"벨기에", homeScore:2, awayScore:1, winner:"스페인", status:"final", kickoff:"2026-07-11T06:00:00+09:00" },
       { id:"qf3", label:"3경기", home:"노르웨이", away:"잉글랜드", homeScore:null, awayScore:null, winner:null, status:"scheduled", kickoff:"2026-07-12T06:00:00+09:00" },
       { id:"qf4", label:"4경기", home:"아르헨티나", away:"스위스", homeScore:null, awayScore:null, winner:null, status:"scheduled", kickoff:"2026-07-12T10:00:00+09:00" }
+    ],
+    semifinals: [
+      { id:"sf1", label:"4강 1경기", home:"프랑스", away:"스페인", homeScore:null, awayScore:null, winner:null, status:"polling", kickoff:null },
+      { id:"sf2", label:"4강 2경기", home:"잉글랜드", away:"아르헨티나", homeScore:null, awayScore:null, winner:null, status:"polling", kickoff:null }
     ]
   };
 
@@ -237,7 +248,7 @@
     return new Intl.DateTimeFormat("ko-KR", options).format(new Date(value)).replace(/\. /g, ".").replace(".", ". ").trim();
   }
 
-  function nextMatchCard(matches) {
+  function nextMatchCard(matches, semifinals = []) {
     const live = matches.find((match) => effectiveStatus(match) === "live");
     if (live) {
       const source = live.source ? ` · ${escapeHtml(live.source)} 참고` : "";
@@ -250,7 +261,11 @@
       .filter((match) => effectiveStatus(match) !== "final" && effectiveStatus(match) !== "live" && match.kickoff)
       .sort((a, b) => new Date(a.kickoff) - new Date(b.kickoff));
     if (!upcoming.length) {
-      return { title: "예정 경기 없음", detail: "8강 일정 종료" };
+      const polling = semifinals.find((match) => match.status === "polling");
+      if (polling) {
+        return { title: matchTitle(polling), detail: "스코어 투표중<br>일정 대기" };
+      }
+      return { title: "예정 경기 없음", detail: "일정 종료" };
     }
     const next = upcoming[0];
     return {
@@ -299,6 +314,18 @@
     return counts;
   }
 
+  function quarterGoalWinner(finalMatches) {
+    const totalGoals = finalMatches.reduce((sum, match) => sum + Number(match.homeScore || 0) + Number(match.awayScore || 0), 0);
+    const scores = people.map((name, index) => ({
+      name,
+      prediction: goalPredictions[index],
+      diff: Math.abs(goalPredictions[index] - totalGoals)
+    }));
+    const best = Math.min(...scores.map((score) => score.diff));
+    const winners = scores.filter((score) => score.diff === best);
+    return { totalGoals, winners };
+  }
+
   function markBadPicks(table) {
     if (!table) return;
     table.querySelectorAll("tbody tr:not(.footer)").forEach((row) => {
@@ -340,13 +367,14 @@
 
   function render(data) {
     const matches = data.matches || [];
+    const semifinals = data.semifinals || [];
     const finalMatches = matches.filter((match) => match.status === "final" && match.winner);
     const totalGoals = finalMatches.reduce((sum, match) => sum + Number(match.homeScore || 0) + Number(match.awayScore || 0), 0);
     const scores = people.map((name, personIndex) => ({
       name,
       hits: finalMatches.filter((match) => sameTeam(quarterPredictions[match.id]?.[personIndex], match.winner)).length
     }));
-    const nextCard = nextMatchCard(matches);
+    const nextCard = nextMatchCard(matches, semifinals);
     const alive = aliveTeams(matches);
     const badScores = badPickScores(finalMatches, alive);
     const allHitScores = hitScores(finalMatches, data.championWinner);
@@ -364,6 +392,13 @@
     document.getElementById("summary").textContent = finalMatches.length === matches.length
       ? "8강 모든 경기 결과가 확정되어 적중 수와 총 골수 승부가 자동으로 계산되었습니다."
       : `${finalMatches.map((match) => match.winner).join("와 ")}${finalMatches.length ? "이 4강에 도착했습니다. " : ""}남은 경기 결과가 들어오면 표와 순위가 자동으로 갱신됩니다.`;
+
+    const quarterWin = quarterGoalWinner(finalMatches);
+    const quarterWinNames = quarterWin.winners.map((winner) => winner.name).join(" · ");
+    const quarterWinPredictions = [...new Set(quarterWin.winners.map((winner) => `${winner.prediction}골`))].join(" · ");
+    document.getElementById("quarterWinner").textContent = finalMatches.length === matches.length
+      ? `${quarterWinNames} · ${quarterWinPredictions} 예측 (실제 ${quarterWin.totalGoals}골)`
+      : "8강 종료 후 확정";
 
     document.getElementById("matches").innerHTML = matches.map((match) => (
       `<div class="match ${effectiveStatus(match) === "live" ? "live" : ""}"><span>${escapeHtml(match.label)}</span><strong>${escapeHtml(matchTitle(match))}</strong><em>${escapeHtml(statusText(match))}</em></div>`
@@ -387,6 +422,14 @@
         }).join("")}
         <tr class="footer"><th>현재 적중</th><td>${finalMatches.length}/${matches.length} 확정</td>${scores.map((score) => `<td>${score.hits}</td>`).join("")}</tr>
         <tr class="footer"><th>총 골수 예측</th><td>현재 ${totalGoals}골</td>${goalPredictions.map((goals) => `<td>${goals}</td>`).join("")}</tr>
+      </tbody>`;
+    document.getElementById("semifinalTable").innerHTML = `
+      <caption>4강 스코어 투표 현황</caption>
+      <thead><tr><th>경기</th><th>대진</th><th>상태</th></tr></thead>
+      <tbody>
+        ${semifinals.map((match) => (
+          `<tr><th>${escapeHtml(match.label)}</th><td>${escapeHtml(matchTitle(match))}</td><td><span class="status-pill">${match.status === "polling" ? "투표중" : escapeHtml(statusText(match))}</span></td></tr>`
+        )).join("")}
       </tbody>`;
     markBadPicks(document.getElementById("quarterTable"));
     markBadPicks(document.querySelector("#round16 table"));
