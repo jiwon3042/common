@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-12T08:53:53+09:00",
+  "updatedAt": "2026-07-12T12:46:44+09:00",
   "matches": [
     {
       "id": "qf1",
@@ -40,11 +40,12 @@
       "label": "4경기",
       "home": "아르헨티나",
       "away": "스위스",
-      "homeScore": null,
-      "awayScore": null,
-      "winner": null,
-      "status": "scheduled",
-      "kickoff": "2026-07-12T10:00:00+09:00"
+      "homeScore": 3,
+      "awayScore": 1,
+      "winner": "아르헨티나",
+      "status": "final",
+      "kickoff": "2026-07-12T10:00:00+09:00",
+      "source": "User report"
     }
   ]
 }
