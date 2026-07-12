@@ -44,6 +44,7 @@
     th,td { padding:12px 10px; border-top:1px solid var(--line); text-align:center; white-space:nowrap; }
     thead th { background:rgba(16,47,53,.08); }
     tbody th:first-child,thead th:first-child { position:sticky; left:0; z-index:1; background:#fffaf1; text-align:left; }
+    .pick-start { border-left:2px solid rgba(16,47,53,.28); }
     .hit { background:var(--green-soft); color:#124c3d; font-weight:800; }
     .miss { background:var(--red-soft); }
     .bad-pick { display:inline-block; margin-top:3px; padding:2px 5px; border-radius:999px; background:#c96f5b; color:#fff; font-size:.68rem; font-style:normal; font-weight:800; line-height:1; }
@@ -341,17 +342,17 @@
 
     document.getElementById("quarterTable").innerHTML = `
       <caption>8강 친구별 선택과 결과</caption>
-      <thead><tr><th>경기</th><th>결과</th>${people.map((name) => `<th>${escapeHtml(name)}</th>`).join("")}</tr></thead>
+      <thead><tr><th>경기</th><th>결과</th>${people.map((name, index) => `<th class="${index === 0 ? "pick-start" : ""}">${escapeHtml(name)}</th>`).join("")}</tr></thead>
       <tbody>
         ${matches.map((match) => {
           const picks = quarterPredictions[match.id] || [];
-          const minority = ["qf3", "qf4"].includes(match.id) ? minorityPicks(picks) : new Set();
+          const minority = ["qf3", "qf4"].includes(match.id) && !match.winner ? minorityPicks(picks) : new Set();
           const resultClass = match.winner ? "hit" : "wait";
           const resultText = match.winner ? displayTeam(match.winner) : "진행/대기";
           return `<tr><th>${escapeHtml(match.label)}</th><td class="${resultClass}">${escapeHtml(resultText)}</td>${people.map((_, index) => {
             const pick = picks[index] || "-";
             const cellClass = match.winner ? (sameTeam(pick, match.winner) ? "hit" : "miss") : "";
-            const classes = [cellClass, minority.has(pick) ? "minority" : ""].filter(Boolean).join(" ");
+            const classes = [index === 0 ? "pick-start" : "", cellClass, minority.has(pick) ? "minority" : ""].filter(Boolean).join(" ");
             return `<td class="${classes}">${escapeHtml(displayTeam(pick))}</td>`;
           }).join("")}</tr>`;
         }).join("")}
