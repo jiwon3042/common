@@ -54,6 +54,8 @@
     .wait { background:#eee8dd; color:var(--muted); }
     .minority { font-weight:900; box-shadow:inset 0 -3px 0 rgba(196,146,47,.45); }
     .footer th,.footer td { background:rgba(196,146,47,.1); font-weight:800; }
+    .winner-cell { background:linear-gradient(180deg,#e4f6ea,#fff0be) !important; color:#0f513f; font-weight:900; }
+    .winner-cell .winner-badge { display:block; width:max-content; max-width:100%; margin:4px auto 0; }
     .winner { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; }
     .winner span { color:var(--muted); }
     .winner strong { font-size:1.35rem; }
@@ -140,7 +142,7 @@
       <tr><th>2경기</th><td>스페인</td><td class="hit">스페인</td><td class="hit">스페인</td><td>포르투갈</td><td>포르투갈</td><td class="hit">스페인</td><td class="hit">스페인</td><td class="hit">스페인</td></tr>
       <tr><th>3경기</th><td>벨기에</td><td class="hit">벨기에</td><td class="hit">벨기에</td><td class="hit">벨기에</td><td>미국</td><td class="hit">벨기에</td><td>미국</td><td>미국</td></tr>
       <tr><th>4경기</th><td>스위스</td><td>콜롬비아</td><td class="hit">스위스</td><td>콜롬비아</td><td>콜롬비아</td><td>콜롬비아</td><td>콜롬비아</td><td>콜롬비아</td></tr>
-      <tr class="footer"><th>적중 수</th><td>확정</td><td>2</td><td>4</td><td>1</td><td>1</td><td>3</td><td>2</td><td>1</td></tr>
+      <tr class="footer"><th>적중 수</th><td>확정</td><td>2</td><td class="winner-cell">4 <span class="winner-badge">🏆 승자</span></td><td>1</td><td>1</td><td>3</td><td>2</td><td>1</td></tr>
     </tbody></table></div></section>
   </section>
   <section class="view" id="champion">
@@ -173,8 +175,8 @@
       { id:"qf4", label:"4경기", home:"아르헨티나", away:"스위스", homeScore:null, awayScore:null, winner:null, status:"scheduled", kickoff:"2026-07-12T10:00:00+09:00" }
     ],
     semifinals: [
-      { id:"sf1", label:"4강 1경기", home:"프랑스", away:"스페인", homeScore:null, awayScore:null, winner:null, status:"polling", kickoff:null },
-      { id:"sf2", label:"4강 2경기", home:"잉글랜드", away:"아르헨티나", homeScore:null, awayScore:null, winner:null, status:"polling", kickoff:null }
+      { id:"sf1", label:"4강 1경기", home:"프랑스", away:"스페인", homeScore:null, awayScore:null, winner:null, status:"polling", kickoff:"2026-07-15T04:00:00+09:00" },
+      { id:"sf2", label:"4강 2경기", home:"잉글랜드", away:"아르헨티나", homeScore:null, awayScore:null, winner:null, status:"polling", kickoff:"2026-07-16T04:00:00+09:00" }
     ]
   };
 
@@ -243,14 +245,23 @@
 
   function compactKickoff(value, includeDate = true) {
     if (!value) return "-";
-    const options = includeDate
-      ? { timeZone:"Asia/Seoul", month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit", hour12:false }
-      : { timeZone:"Asia/Seoul", hour:"2-digit", minute:"2-digit", hour12:false };
-    return new Intl.DateTimeFormat("ko-KR", options).format(new Date(value)).replace(/\. /g, ".").replace(".", ". ").trim();
+    const parts = new Intl.DateTimeFormat("ko-KR", {
+      timeZone:"Asia/Seoul",
+      month:"2-digit",
+      day:"2-digit",
+      hour:"2-digit",
+      minute:"2-digit",
+      hour12:false
+    }).formatToParts(new Date(value)).reduce((acc, part) => {
+      acc[part.type] = part.value;
+      return acc;
+    }, {});
+    return includeDate ? `${parts.month}.${parts.day} ${parts.hour}:${parts.minute}` : `${parts.hour}:${parts.minute}`;
   }
 
   function nextMatchCard(matches, semifinals = []) {
-    const live = matches.find((match) => effectiveStatus(match) === "live");
+    const schedule = [...matches, ...semifinals];
+    const live = schedule.find((match) => effectiveStatus(match) === "live");
     if (live) {
       const source = live.source ? ` · ${escapeHtml(live.source)} 참고` : "";
       return {
@@ -258,7 +269,7 @@
         detail: `진행 중${source}<br>실시간 스코어`
       };
     }
-    const upcoming = matches
+    const upcoming = schedule
       .filter((match) => effectiveStatus(match) !== "final" && effectiveStatus(match) !== "live" && match.kickoff)
       .sort((a, b) => new Date(a.kickoff) - new Date(b.kickoff));
     if (!upcoming.length) {
@@ -291,6 +302,12 @@
     championPredictions.forEach((team, personIndex) => {
       if (!alive.has(normalizeTeam(team))) counts[personIndex].count += 1;
     });
+    if (finalMatches.length === Object.keys(quarterPredictions).length) {
+      const goalWinnerNames = new Set(quarterGoalWinner(finalMatches).winners.map((winner) => winner.name));
+      counts.forEach((score) => {
+        if (!goalWinnerNames.has(score.name)) score.count += 1;
+      });
+    }
     return counts;
   }
 
@@ -422,14 +439,14 @@
           }).join("")}</tr>`;
         }).join("")}
         <tr class="footer"><th>현재 적중</th><td>${finalMatches.length}/${matches.length} 확정</td>${scores.map((score) => `<td>${score.hits}</td>`).join("")}</tr>
-        <tr class="footer"><th>총 골수 예측</th><td>현재 ${totalGoals}골</td>${goalPredictions.map((goals, index) => `<td>${goals}${index === 2 ? "" : '<em class="bad-pick">축알못</em>'}</td>`).join("")}</tr>
+        <tr class="footer"><th>총 골수 예측</th><td>현재 ${totalGoals}골</td>${goalPredictions.map((goals, index) => `<td class="${index === 2 ? "winner-cell" : ""}">${goals}${index === 2 ? ' <span class="winner-badge">🏆 승자</span>' : '<em class="bad-pick">축알못</em>'}</td>`).join("")}</tr>
       </tbody>`;
     document.getElementById("semifinalTable").innerHTML = `
       <caption>4강 스코어 투표 현황</caption>
-      <thead><tr><th>경기</th><th>대진</th><th>상태</th></tr></thead>
+      <thead><tr><th>경기</th><th>대진</th><th>일정</th><th>상태</th></tr></thead>
       <tbody>
         ${semifinals.map((match) => (
-          `<tr><th>${escapeHtml(match.label)}</th><td>${escapeHtml(matchTitle(match))}</td><td><span class="status-pill">${match.status === "polling" ? "투표중" : escapeHtml(statusText(match))}</span></td></tr>`
+          `<tr><th>${escapeHtml(match.label)}</th><td>${escapeHtml(matchTitle(match))}</td><td>${escapeHtml(compactKickoff(match.kickoff))}</td><td><span class="status-pill">${match.status === "polling" ? "투표중" : escapeHtml(statusText(match))}</span></td></tr>`
         )).join("")}
       </tbody>`;
     markBadPicks(document.getElementById("quarterTable"));
