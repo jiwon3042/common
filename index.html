@@ -278,6 +278,27 @@
     return counts;
   }
 
+  function hitScores(finalMatches, championWinner) {
+    const counts = people.map((name) => ({ name, hits: 0 }));
+    round16Predictions.forEach((picks, matchIndex) => {
+      picks.forEach((pick, personIndex) => {
+        if (sameTeam(pick, round16Results[matchIndex])) counts[personIndex].hits += 1;
+      });
+    });
+    finalMatches.forEach((match) => {
+      const picks = quarterPredictions[match.id] || [];
+      picks.forEach((pick, personIndex) => {
+        if (sameTeam(pick, match.winner)) counts[personIndex].hits += 1;
+      });
+    });
+    if (championWinner) {
+      championPredictions.forEach((team, personIndex) => {
+        if (sameTeam(team, championWinner)) counts[personIndex].hits += 1;
+      });
+    }
+    return counts;
+  }
+
   function markBadPicks(table) {
     if (!table) return;
     table.querySelectorAll("tbody tr:not(.footer)").forEach((row) => {
@@ -328,13 +349,14 @@
     const nextCard = nextMatchCard(matches);
     const alive = aliveTeams(matches);
     const badScores = badPickScores(finalMatches, alive);
-    const maxHits = Math.max(0, ...scores.map((score) => score.hits));
-    const hitLeaders = scores.filter((score) => score.hits === maxHits).map((score) => score.name);
+    const allHitScores = hitScores(finalMatches, data.championWinner);
+    const maxHits = Math.max(0, ...allHitScores.map((score) => score.hits));
+    const hitLeaders = allHitScores.filter((score) => score.hits === maxHits).map((score) => score.name);
     const maxBad = Math.max(0, ...badScores.map((score) => score.count));
     const badLeaders = badScores.filter((score) => score.count === maxBad).map((score) => score.name);
 
     document.getElementById("hitLeader").textContent = hitLeaders.length ? `🏆 ${hitLeaders.join(" · ")} 🏆` : "-";
-    document.getElementById("hitCount").textContent = `${maxHits}개 적중 · 정답왕`;
+    document.getElementById("hitCount").textContent = `전체 ${maxHits}개 적중 · 정답왕`;
     document.getElementById("nextMatch").textContent = nextCard.title;
     document.getElementById("nextCountdown").innerHTML = nextCard.detail;
     document.getElementById("badPickLeader").textContent = badLeaders.length ? `👑 ${badLeaders.join(" · ")} 👑` : "-";
